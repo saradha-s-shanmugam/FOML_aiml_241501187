@@ -1,0 +1,83 @@
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+import numpy as np
+
+# Load iris dataset from seaborn (no file needed)
+df = sns.load_dataset('iris')
+
+# Rename columns to match your original code's style
+df.rename(columns={
+    'sepal_length': 'sepal.length',
+    'sepal_width': 'sepal.width',
+    'petal_length': 'petal.length',
+    'petal_width': 'petal.width',
+    'species': 'variety'
+}, inplace=True)
+
+# Quick look at data
+print(df.head())
+print("Shape of dataset:", df.shape)
+
+# Split data by variety
+df_Setosa = df[df['variety'] == 'setosa']
+df_Virginica = df[df['variety'] == 'virginica']
+df_Versicolor = df[df['variety'] == 'versicolor']
+
+# Univariate Analysis: Sepal Width
+plt.figure(figsize=(6, 2))
+plt.scatter(df_Setosa['sepal.width'], np.zeros_like(df_Setosa['sepal.width']), label='Setosa')
+plt.scatter(df_Virginica['sepal.width'], np.zeros_like(df_Virginica['sepal.width']), label='Virginica')
+plt.scatter(df_Versicolor['sepal.width'], np.zeros_like(df_Versicolor['sepal.width']), label='Versicolor')
+plt.xlabel('Sepal Width')
+plt.title('Univariate: Sepal Width by Variety')
+plt.legend()
+plt.show()
+
+# Univariate Analysis: Sepal Length
+plt.figure(figsize=(6, 2))
+plt.scatter(df_Setosa['sepal.length'], np.zeros_like(df_Setosa['sepal.length']), label='Setosa')
+plt.scatter(df_Virginica['sepal.length'], np.zeros_like(df_Virginica['sepal.length']), label='Virginica')
+plt.scatter(df_Versicolor['sepal.length'], np.zeros_like(df_Versicolor['sepal.length']), label='Versicolor')
+plt.xlabel('Sepal Length')
+plt.title('Univariate: Sepal Length by Variety')
+plt.legend()
+plt.show()
+
+# Univariate Analysis: Petal Width
+plt.figure(figsize=(6, 2))
+plt.scatter(df_Setosa['petal.width'], np.zeros_like(df_Setosa['petal.width']), label='Setosa')
+plt.scatter(df_Virginica['petal.width'], np.zeros_like(df_Virginica['petal.width']), label='Virginica')
+plt.scatter(df_Versicolor['petal.width'], np.zeros_like(df_Versicolor['petal.width']), label='Versicolor')
+plt.xlabel('Petal Width')
+plt.title('Univariate: Petal Width by Variety')
+plt.legend()
+plt.show()
+
+# Univariate Analysis: Petal Length
+plt.figure(figsize=(6, 2))
+plt.scatter(df_Setosa['petal.length'], np.zeros_like(df_Setosa['petal.length']), label='Setosa')
+plt.scatter(df_Virginica['petal.length'], np.zeros_like(df_Virginica['petal.length']), label='Virginica')
+plt.scatter(df_Versicolor['petal.length'], np.zeros_like(df_Versicolor['petal.length']), label='Versicolor')
+plt.xlabel('Petal Length')
+plt.title('Univariate: Petal Length by Variety')
+plt.legend()
+plt.show()
+
+# Bivariate Analysis: Sepal Width vs Petal Width
+sns.set(style="whitegrid")
+g = sns.FacetGrid(df, hue='variety', height=5)
+g.map(plt.scatter, "sepal.width", "petal.width").add_legend()
+plt.title('Bivariate: Sepal Width vs Petal Width')
+plt.show()
+
+# Bivariate Analysis: Sepal Length vs Petal Length
+g = sns.FacetGrid(df, hue='variety', height=5)
+g.map(plt.scatter, "sepal.length", "petal.length").add_legend()
+plt.title('Bivariate: Sepal Length vs Petal Length')
+plt.show()
+
+# Bonus: Pairplot for all features
+sns.pairplot(df, hue='variety', diag_kind='hist')
+plt.suptitle('Pairplot Overview of Iris Features', y=1.02)
+plt.show()
