@@ -1,0 +1,31 @@
+import pandas as pd
+import matplotlib.pyplot as plt
+import numpy as np
+data = pd.read_csv('headbrain.csv')
+x = np.array(data['Head Size(cm^3)'])
+y = np.array(data['Brain Weight(grams)'])
+def get_line(x, y):
+    x_mean, y_mean = np.mean(x), np.mean(y)
+    m = np.sum((x - x_mean) * (y - y_mean)) / np.sum((x - x_mean)**2)
+    c = y_mean - m * x_mean
+    return lambda val: m * val + c
+lin = get_line(x, y)
+X_line = np.linspace(np.min(x) - 100, np.max(x) + 100, 1000)
+Y_line = np.array([lin(i) for i in X_line])
+plt.scatter(x, y, color='green', label='Actual Data')
+plt.plot(X_line, Y_line, color='red', label='Regression Line')
+plt.xlabel('Head Size (cm³)')
+plt.ylabel('Brain Weight (grams)')
+plt.legend()
+plt.show()
+def get_r2(line_func, x, y):
+    y_mean = np.mean(y)
+    y_pred = np.array([line_func(i) for i in x])
+    ss_total = np.sum((y - y_mean)**2)
+    ss_res = np.sum((y - y_pred)**2)
+    return 1 - (ss_res / ss_total)
+print(get_r2(lin, x, y))
+from sklearn.linear_model import LinearRegression
+x_reshaped = x.reshape((len(x), 1))
+reg = LinearRegression().fit(x_reshaped, y)
+print(reg.score(x_reshaped, y))
