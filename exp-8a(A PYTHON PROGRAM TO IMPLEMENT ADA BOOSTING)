@@ -1,0 +1,90 @@
+import numpy as np
+import pandas as pd
+import seaborn as sns
+from sklearn.tree import DecisionTreeClassifier, plot_tree
+from mlxtend.plotting import plot_decision_regions
+import matplotlib.pyplot as plt
+
+df = pd.DataFrame({
+    'X1': [1,2,3,4,5,6,6,7,9,9],
+    'X2': [5,3,6,8,1,9,5,8,9,2],
+    'label': [1,1,0,1,0,1,0,1,0,0]
+})
+
+sns.scatterplot(x='X1', y='X2', hue='label', data=df, palette='coolwarm')
+plt.title("Initial Dataset Distribution")
+plt.show()
+
+df['weights'] = 1 / df.shape[0]
+x = df[['X1','X2']].values
+y = df['label'].values
+
+dt1 = DecisionTreeClassifier(max_depth=1)
+dt1.fit(x, y)
+
+plot_decision_regions(x, y, clf=dt1, legend=2)
+plt.title("Decision Region - Weak Classifier 1")
+plt.show()
+
+df['y_pred'] = dt1.predict(x)
+error = sum(df['weights'] * (df['y_pred'] != df['label'])) / sum(df['weights'])
+
+def calculate_model_weight(error):
+    return 0.5 * np.log((1 - error) / error)
+
+alpha1 = calculate_model_weight(error)
+print(f"Alpha1 = {alpha1:.3f}")
+
+def update_row_weights(row, alpha):
+    if row['label'] == row['y_pred']:
+        return row['weights'] * np.exp(-alpha)
+    else:
+        return row['weights'] * np.exp(alpha)
+
+df['updated_weights'] = df.apply(update_row_weights, axis=1, alpha=alpha1)
+df['normalized_weights'] = df['updated_weights'] / df['updated_weights'].sum()
+df['cumsum_upper'] = np.cumsum(df['normalized_weights'])
+df['cumsum_lower'] = df['cumsum_upper'] - df['normalized_weights']
+
+def create_new_dataset(df):
+    indices = []
+    for _ in range(df.shape[0]):
+        a = np.random.random()
+        for index, row in df.iterrows():
+            if row['cumsum_upper'] > a and a > row['cumsum_lower']:
+                indices.append(index)
+                break
+    return indices
+
+index_values = create_new_dataset(df)
+second_df = df.iloc[index_values][['X1','X2','label','weights']].reset_index(drop=True)
+
+x2 = second_df[['X1','X2']].values
+y2 = second_df['label'].values
+dt2 = DecisionTreeClassifier(max_depth=1)
+dt2.fit(x2, y2)
+
+plot_decision_regions(x2, y2, clf=dt2, legend=2)
+plt.title("Decision Region - Weak Classifier 2")
+plt.show()
+
+second_df['y_pred'] = dt2.predict(x2)
+error2 = sum(second_df['weights'] * (second_df['y_pred'] != second_df['label'])) / sum(second_df['weights'])
+alpha2 = calculate_model_weight(error2)
+print(f"Alpha2 = {alpha2:.3f}")
+
+dt3 = DecisionTreeClassifier(max_depth=1)
+dt3.fit(x, y)
+alpha3 = calculate_model_weight(0.7)
+print(f"Alpha3 = {alpha3:.3f}")
+
+print(f"Model weights: Alpha1={alpha1:.3f}, Alpha2={alpha2:.3f}, Alpha3={alpha3:.3f}")
+
+query1 = np.array([1,5]).reshape(1,2)
+query2 = np.array([9,9]).reshape(1,2)
+
+pred1 = np.sign(alpha1 * dt1.predict(query1) + alpha2 * dt2.predict(query1) + alpha3 * dt3.predict(query1))
+pred2 = np.sign(alpha1 * dt1.predict(query2) + alpha2 * dt2.predict(query2) + alpha3 * dt3.predict(query2))
+
+print(f"Final Prediction for {query1}: {pred1}")
+print(f"Final Prediction for {query2}: {pred2}")
