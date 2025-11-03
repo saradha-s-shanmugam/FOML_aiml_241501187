@@ -1,0 +1,36 @@
+from sklearn import datasets
+import pandas as pd
+from sklearn.preprocessing import StandardScaler
+from sklearn.decomposition import PCA
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+iris = datasets.load_iris()
+df = pd.DataFrame(iris['data'], columns=iris['feature_names'])
+
+scalar = StandardScaler()
+scaled_data = pd.DataFrame(scalar.fit_transform(df))
+
+sns.heatmap(scaled_data.corr())
+plt.show()
+
+pca = PCA(n_components=3)
+pca.fit(scaled_data)
+data_pca = pca.transform(scaled_data)
+data_pca = pd.DataFrame(data_pca, columns=['PC1', 'PC2', 'PC3'])
+
+sns.heatmap(data_pca.corr())
+plt.show()
+
+explained_var = pca.explained_variance_ratio_
+plt.plot(range(1, len(explained_var)+1), explained_var, marker='o')
+plt.title('Scree Plot')
+plt.xlabel('Principal Components')
+plt.ylabel('Explained Variance Ratio')
+plt.show()
+
+plt.scatter(data_pca['PC1'], data_pca['PC2'], c=iris.target, cmap='rainbow')
+plt.title('PCA - Reduced Data (2 Components)')
+plt.xlabel('PC1')
+plt.ylabel('PC2')
+plt.show()
